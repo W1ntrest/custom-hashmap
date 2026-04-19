@@ -69,4 +69,16 @@ public class CustomHashMap<Key, Value> {
         temp.next = new Node<>(key, value);
         size++;
     }
+
+    public Value get(Key key){
+        int index = getHash(key);
+
+        Node<Key, Value> node = table[index];
+        while (node != null){
+            if(node.key.equals(key))
+                return node.value;
+            node = node.next;
+        }
+        return null;
+    }
 }
