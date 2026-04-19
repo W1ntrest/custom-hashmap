@@ -25,7 +25,7 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
 
     private Node<Key, Value>[] table;
     private int countElements = 0;
-    private int sizeTable;
+    private int sizeTable = DEFAULT_SIZE;
 
     private static final int DEFAULT_SIZE = 16;
 
