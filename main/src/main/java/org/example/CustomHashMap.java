@@ -2,9 +2,9 @@ package org.example;
 
 import java.util.*;
 
-public class CustomHashMap<Key, Value> {
+public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Key, Value>> {
 
-    private static class Node<Key, Value> {
+    public static class Node<Key, Value> {
         final Key key;
         Value value;
         Node<Key, Value> next;
@@ -14,19 +14,18 @@ public class CustomHashMap<Key, Value> {
             this.value = value;
         }
 
-        public Key getKey() {
-            return key;
-        }
-        public Value getValue() {
-            return value;
-        }
-        public void setValue(Value value) {
-            this.value = value;
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "key=" + key +
+                    ", value=" + value +
+                    '}';
         }
     }
 
     private Node<Key, Value>[] table;
-    private int size = 0;
+    private int countElements = 0;
+    private int sizeTable;
 
     private static final int DEFAULT_SIZE = 16;
 
@@ -34,8 +33,9 @@ public class CustomHashMap<Key, Value> {
         this(DEFAULT_SIZE);
     }
 
-    public CustomHashMap(int size){
-        table = (Node<Key, Value>[]) new Node[size];
+    public CustomHashMap(int sizeTable){
+        this.sizeTable = sizeTable;
+        table = (Node<Key, Value>[]) new Node[sizeTable];
     }
 
     private int getHash(Key key) {
@@ -45,13 +45,13 @@ public class CustomHashMap<Key, Value> {
         return (hashcode & 0x7FFFFFFF) % table.length;
     }
 
-    public void put(Key key, Value value) {
+    public Value put(Key key, Value value) {
         int index = getHash(key);
 
         if(table[index] == null){
             table[index] = new Node<>(key, value);
-            size++;
-            return;
+            countElements++;
+            return value;
         }
 
         Node<Key, Value> node = table[index];
@@ -59,15 +59,42 @@ public class CustomHashMap<Key, Value> {
 
         while(node != null){
             if(node.key.equals(key)){
+                Value tempValue = node.value;
                 node.value = value;
-                return;
+                return tempValue;
             }
             temp = node;
             node = node.next;
         }
 
         temp.next = new Node<>(key, value);
-        size++;
+        countElements++;
+        return value;
+    }
+
+    public Value putIfAbsent(Key key, Value value){
+        int index = getHash(key);
+
+        if(table[index] == null){
+            table[index] = new Node<>(key, value);
+            countElements++;
+            return value;
+        }
+
+        Node<Key, Value> node = table[index];
+        Node<Key, Value> temp = null;
+
+        while(node != null){
+            if(node.key.equals(key)){
+                return node.value;
+            }
+            temp = node;
+            node = node.next;
+        }
+
+        temp.next = new Node<>(key, value);
+        countElements++;
+        return value;
     }
 
     public Value get(Key key){
@@ -82,6 +109,11 @@ public class CustomHashMap<Key, Value> {
         return null;
     }
 
+    public Value getOrDefault(Key key, Value defaultValue){
+        Value value = get(key);
+        return value != null ? value : defaultValue;
+    }
+
     public Value remove(Key key) {
         int index = getHash(key);
 
@@ -93,7 +125,7 @@ public class CustomHashMap<Key, Value> {
         if(node.key.equals(key)) {
             Value value = node.value;
             table[index] = node.next;
-            size--;
+            countElements--;
             return value;
         }
 
@@ -102,7 +134,7 @@ public class CustomHashMap<Key, Value> {
         while(temp != null) {
             if(temp.key.equals(key)){
                 node.next = temp.next;
-                size--;
+                countElements--;
                 return node.value;
             }
             node = temp;
@@ -110,5 +142,81 @@ public class CustomHashMap<Key, Value> {
         }
 
         return null;
+    }
+
+    public void clear(){
+        countElements = 0;
+        table = (Node<Key, Value>[]) new Node[sizeTable];
+    }
+
+    public boolean containsKey(Key key) {
+        int index = getHash(key);
+
+        Node<Key, Value> node = table[index];
+        while(node != null) {
+            if(node.key.equals(key))
+                return true;
+            node = node.next;
+        }
+
+        return false;
+    }
+
+    public boolean containsValue(Value value){
+        for (Node<Key, Value> keyValueNode : table) {
+            Node<Key, Value> node = keyValueNode;
+            while (node != null) {
+                if (node.value.equals(value))
+                    return true;
+                node = node.next;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isEmpty() {
+        return countElements == 0;
+    }
+
+    public int getSize() {
+        return countElements;
+    }
+
+    private class NodeIterator implements Iterator<Node<Key, Value>> {
+        private int indexTable = 0;
+        private Node<Key, Value> node = null;
+        private int countEl = countElements;
+
+        private void getNode() {
+            if (node != null && node.next != null) {
+                node = node.next;
+                return;
+            }
+
+            node = null;
+            while (indexTable < table.length && node == null) {
+                node = table[indexTable];
+                indexTable++;
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return countEl > 0;
+        }
+
+        @Override
+        public Node<Key, Value> next() {
+            getNode();
+            Node<Key, Value> node = new Node<>(this.node.key, this.node.value);
+            countEl--;
+            return node;
+        }
+    }
+
+    @Override
+    public Iterator<Node<Key, Value>> iterator() {
+        return new NodeIterator();
     }
 }
