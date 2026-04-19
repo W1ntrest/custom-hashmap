@@ -81,4 +81,34 @@ public class CustomHashMap<Key, Value> {
         }
         return null;
     }
+
+    public Value remove(Key key) {
+        int index = getHash(key);
+
+        Node<Key, Value> node = table[index];
+
+        if (node == null)
+            return null;
+
+        if(node.key.equals(key)) {
+            Value value = node.value;
+            table[index] = node.next;
+            size--;
+            return value;
+        }
+
+        Node<Key, Value> temp = node.next;
+
+        while(temp != null) {
+            if(temp.key.equals(key)){
+                node.next = temp.next;
+                size--;
+                return node.value;
+            }
+            node = temp;
+            temp = node.next;
+        }
+
+        return null;
+    }
 }
