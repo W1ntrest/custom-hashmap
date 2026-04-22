@@ -51,7 +51,7 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
         if(table[index] == null){
             table[index] = new Node<>(key, value);
             countElements++;
-            return value;
+            return null;
         }
 
         Node<Key, Value> node = table[index];
@@ -69,7 +69,7 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
 
         temp.next = new Node<>(key, value);
         countElements++;
-        return value;
+        return null;
     }
 
     public Value putIfAbsent(Key key, Value value){
@@ -78,7 +78,7 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
         if(table[index] == null){
             table[index] = new Node<>(key, value);
             countElements++;
-            return value;
+            return null;
         }
 
         Node<Key, Value> node = table[index];
@@ -94,7 +94,7 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
 
         temp.next = new Node<>(key, value);
         countElements++;
-        return value;
+        return null;
     }
 
     public Value get(Key key){
@@ -133,9 +133,10 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
 
         while(temp != null) {
             if(temp.key.equals(key)){
+                Value value = temp.value;
                 node.next = temp.next;
                 countElements--;
-                return node.value;
+                return value;
             }
             node = temp;
             temp = node.next;
@@ -209,9 +210,8 @@ public class CustomHashMap<Key, Value> implements Iterable<CustomHashMap.Node<Ke
         @Override
         public Node<Key, Value> next() {
             getNode();
-            Node<Key, Value> node = new Node<>(this.node.key, this.node.value);
             countEl--;
-            return node;
+            return new Node<>(this.node.key, this.node.value);
         }
     }
 
